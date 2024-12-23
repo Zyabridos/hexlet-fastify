@@ -1,19 +1,17 @@
 import fastify from 'fastify';
 
-const data = {
-  phones: ['+12345678', '3434343434', '234-56-78'],
-  domains: ['example.com', 'hexlet.io'],
-};
-
 const app = fastify();
 const port = 3000;
 
-app.get('/phones', (req, res) => {
-  res.send(data.phones);
-});
+// Добавьте в проект hexlet-fastify обработчик, который будет обрабатывать GET запросы по адресу /hello 
+// и выводить приветствие. Обработчик должен использовать параметр запроса name и приветствовать пользователя по имени. \
+// Например, при запросе GET /hello?name=John должно вывестись Hello, John!. 
+// Если параметр запроса name не передан, должно вывестись Hello, World!
 
-app.get('/domains', (req, res) => {
-  res.send(data.domains);
+app.get('/hello', async (request, reply) => {
+  const { name } = request.query;
+  const greeting = `Hello, ${name || 'World'}!`;
+  return greeting;
 });
 
 app.listen({ port }, () => {
