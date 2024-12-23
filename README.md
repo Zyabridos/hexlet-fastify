@@ -16,7 +16,7 @@
 
 ## Requirements
 
-- Node.js >= 16.0.0
+- Node.js >= 20.18.1
 - npm or yarn for managing dependencies
 
 ---
