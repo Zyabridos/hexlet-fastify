@@ -1,50 +1,84 @@
-// По аналогии с примерами из урока, добавьте в приложение обработчик, 
-// который будет обрабатывать запросы по пути users/{id}/post/{postId}
-
 import fastify from 'fastify';
+import pointOfView from '@fastify/view';
+import pug from 'pug';
 
 const app = fastify();
 const port = 3000;
 
+// Подключение плагина для работы с шаблонами
+app.register(pointOfView, {
+  engine: {
+    pug,
+  },
+  root: './src/views',
+});
+
 const state = {
+  courses: [
+    {
+      id: 1,
+      title: 'JS: Массивы',
+      description: 'Курс про массивы в JavaScript',
+    },
+    {
+      id: 2,
+      title: 'JS: Функции',
+      description: 'Курс про функции в JavaScript',
+    },
+  ],
   users: [
-    { id: 1, name: 'Alice' },
-    { id: 2, name: 'Bob' },
+    {
+      id: 1,
+      name: 'John Doe',
+      posts: [
+        { id: 1, title: 'First Post', content: 'This is the first post' },
+        { id: 2, title: 'Second Post', content: 'This is the second post' },
+      ],
+    },
+    {
+      id: 2,
+      name: 'Jane Smith',
+      posts: [
+        { id: 1, title: 'Hello World', content: 'Welcome to the blog!' },
+      ],
+    },
   ],
 };
 
-// Маршрут для получения информации о пользователе по ID
-app.get('/users/:id', (req, res) => {
-  const { id } = req.params;
-  const user = state.users.find((user) => user.id === parseInt(id, 10)); // Приводим `id` к числу
-  if (!user) {
-    return res.code(404).send({ message: 'User not found' });
-  }
-  res.send(user);
-});
-
-// Маршрут для получения информации о курсе
-app.get('/courses/:courseId/lessons/:id', (req, res) => {
-  res.send(`Course ID: ${req.params.courseId}; Lesson ID: ${req.params.id}`);
-});
-
-// Маршрут для получения курса по ID
+// Обработчик для courses/:id
 app.get('/courses/:id', (req, res) => {
-  res.send(`Course ID: ${req.params.id}`);
+  const { id } = req.params;
+  const course = state.courses.find(({ id: courseId }) => courseId === parseInt(id));
+  if (!course) {
+    res.code(404).send({ message: 'Course not found' });
+    return;
+  }
+  res.view('courses/show.pug', { course });
 });
 
-// Маршрут для создания нового курса
-app.get('/courses/new', (req, res) => {
-  res.send('Course build');
-});
-
-// Маршрут для получения поста пользователя
+// бработчик для users/{id}/post/{postId}
 app.get('/users/:id/post/:postId', (req, res) => {
   const { id, postId } = req.params;
-  res.send(`User ID: ${id}; Post ID: ${postId}`);
+  const user = state.users.find(({ id: userId }) => userId === parseInt(id));
+  if (!user) {
+    res.code(404).send({ message: 'User not found' });
+    return;
+  }
+
+  const post = user.posts.find(({ id: pId }) => pId === parseInt(postId));
+  if (!post) {
+    res.code(404).send({ message: 'Post not found' });
+    return;
+  }
+
+  res.view('users/post.pug', { user, post });
 });
 
 // Запуск сервера
-app.listen({ port }, () => {
+app.listen({ port }, (err) => {
+  if (err) {
+    console.error(err);
+    process.exit(1);
+  }
   console.log(`Example app listening on port ${port}`);
 });
