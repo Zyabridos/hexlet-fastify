@@ -1,8 +1,6 @@
-doctype html
-html(lang='en')
-head
-    title Hello Hexlet!
-body
-    main
-    h1 Hello, World!
-    p Fastify + Pug
+extends layout.pug
+
+block content
+  h2 Добро пожаловать на сайт
+  p Этот сайт демонстрирует использование макетов с помощью Pug.
+  a(href="/users") Перейти к списку пользователей

@@ -1,77 +1,54 @@
 import fastify from 'fastify';
 import pointOfView from '@fastify/view';
 import pug from 'pug';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = fastify();
 const port = 3000;
 
-// Подключение плагина для работы с шаблонами
+// Подключаем шаблонизатор
 app.register(pointOfView, {
-  engine: {
-    pug,
-  },
-  root: './src/views',
+  engine: { pug },
+  root: path.join(__dirname, 'views'),
 });
 
-const state = {
-  courses: [
-    {
-      id: 1,
-      title: 'JS: Массивы',
-      description: 'Курс про массивы в JavaScript',
-    },
-    {
-      id: 2,
-      title: 'JS: Функции',
-      description: 'Курс про функции в JavaScript',
-    },
-  ],
-  users: [
-    {
-      id: 1,
-      name: 'John Doe',
-      posts: [
-        { id: 1, title: 'First Post', content: 'This is the first post' },
-        { id: 2, title: 'Second Post', content: 'This is the second post' },
-      ],
-    },
-    {
-      id: 2,
-      name: 'Jane Smith',
-      posts: [
-        { id: 1, title: 'Hello World', content: 'Welcome to the blog!' },
-      ],
-    },
-  ],
-};
+// Статические файлы (например, стили)
+app.register(import('@fastify/static'), {
+  root: path.join(__dirname, 'public'),
+});
 
-// Обработчик для courses/:id
-app.get('/courses/:id', (req, res) => {
+// Данные
+const users = [
+  { id: 1, username: 'john_doe', email: 'john@example.com' },
+  { id: 2, username: 'arya_stark', email: 'arya@example.com' },
+  { id: 3, username: 'john_snow', email: 'johnSnow@example.com' },
+];
+
+// Главная страница
+app.get('/', (req, res) => {
+  res.view('index.pug', { title: 'Главная страница' });
+});
+
+// Список пользователей
+app.get('/users', (req, res) => {
+  res.view('users/index.pug', { title: 'Список пользователей', users });
+});
+
+// Конкретный пользователь
+app.get('/users/:id', (req, res) => {
   const { id } = req.params;
-  const course = state.courses.find(({ id: courseId }) => courseId === parseInt(id));
-  if (!course) {
-    res.code(404).send({ message: 'Course not found' });
-    return;
-  }
-  res.view('courses/show.pug', { course });
-});
+  const user = users.find((user) => user.id === parseInt(id));
 
-// бработчик для users/{id}/post/{postId}
-app.get('/users/:id/post/:postId', (req, res) => {
-  const { id, postId } = req.params;
-  const user = state.users.find(({ id: userId }) => userId === parseInt(id));
   if (!user) {
-    res.code(404).send({ message: 'User not found' });
+    res.code(404).view('error.pug', { title: 'Ошибка', message: 'Пользователь не найден' });
     return;
   }
 
-  const post = user.posts.find(({ id: pId }) => pId === parseInt(postId));
-  if (!post) {
-    res.code(404).send({ message: 'Post not found' });
-    return;
-  }
-
-  res.view('users/post.pug', { user, post });
+  res.view('users/show.pug', { title: `Пользователь ${user.username}`, user });
 });
 
 // Запуск сервера
@@ -80,5 +57,5 @@ app.listen({ port }, (err) => {
     console.error(err);
     process.exit(1);
   }
-  console.log(`Example app listening on port ${port}`);
+  console.log(`Сервер запущен: http://localhost:${port}`);
 });

@@ -1,0 +1,20 @@
+doctype html
+html
+  head
+    title= title || 'Мой сайт'
+    link(rel="stylesheet", href="/styles.css")
+  body
+    header
+      nav
+        a(href="/") Главная
+        h1= title || 'Добро пожаловать'
+    main
+      block content
+    footer
+      p
+        | © 2024 |
+        a(href="https://github.com/zyabridos") Мой GitHub
+
+<!-- header: Содержит верхнее меню с ссылкой на главную страницу. -->
+<!-- block content: Этот блок позволяет каждой странице вставлять уникальный контент. -->
+<!-- footer: Содержит ссылку на ваш профиль GitHub. -->
