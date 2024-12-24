@@ -3,7 +3,9 @@ import pointOfView from '@fastify/view';
 import pug from 'pug';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import sanitizeHtml from 'sanitize-html';
 
+// Воссоздание __dirname
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -16,7 +18,7 @@ app.register(pointOfView, {
   root: path.join(__dirname, 'views'),
 });
 
-// Статические файлы (например, стили)
+// Статические файлы
 app.register(import('@fastify/static'), {
   root: path.join(__dirname, 'public'),
 });
@@ -24,8 +26,8 @@ app.register(import('@fastify/static'), {
 // Данные
 const users = [
   { id: 1, username: 'john_doe', email: 'john@example.com' },
-  { id: 2, username: 'arya_stark', email: 'arya@example.com' },
-  { id: 3, username: 'john_snow', email: 'johnSnow@example.com' },
+  { id: 2, username: 'jane_smith', email: 'jane@example.com' },
+  { id: 3, username: 'sam_wilson', email: 'sam@example.com' },
 ];
 
 // Главная страница
@@ -49,6 +51,22 @@ app.get('/users/:id', (req, res) => {
   }
 
   res.view('users/show.pug', { title: `Пользователь ${user.username}`, user });
+});
+
+// Новый маршрут для получения ID пользователя из строки запроса
+// http://localhost:3000/users/get-user-id?id=1
+// http://localhost:3000/get-user-id?id=<script>alert("XSS")</script>
+
+app.get('/users/get-user-id', (req, res) => {
+  const { id } = req.query;
+
+  // Экранируем ID для защиты от XSS
+  const sanitizedId = sanitizeHtml(id, { allowedTags: [], allowedAttributes: {} });
+
+  res.view('users/get-user-id.pug', {
+    title: 'Получение ID пользователя',
+    id: sanitizedId || 'Идентификатор пользователя удалён из-за недопустимых символов',
+  });
 });
 
 // Запуск сервера
