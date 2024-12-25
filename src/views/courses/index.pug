@@ -1,0 +1,18 @@
+doctype html
+html
+  head
+    title Courses
+  body
+    h1 All Courses
+    form(role='form', method='GET', action='/courses')
+      input(type='search', name='term', value=term, placeholder='Search courses...')
+      input(type='submit', value='Search')
+
+    if courses.length
+      ul
+        each course in courses
+          li
+            h3= course.title
+            p= course.description
+    else
+      p No courses found matching your search criteria.
