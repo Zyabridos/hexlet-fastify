@@ -1,0 +1,22 @@
+html
+  head
+    title Список пользователей
+  body
+    h1 Список пользователей
+    if users.length > 0
+      table(border="1")
+        thead
+          tr
+            th Имя
+            th Email
+            th Дата регистрации
+        tbody
+          each user in users
+            tr
+              td= user.name
+              td= user.email
+              td= user.createdAt || '—' 
+    else
+      p Нет зарегистрированных пользователей.
+
+    a(href="/users/new") Добавить нового пользователя

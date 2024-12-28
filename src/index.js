@@ -1,45 +1,83 @@
 import fastify from 'fastify';
+import formbody from '@fastify/formbody';
 import view from '@fastify/view';
 import pug from 'pug';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-const app = fastify();
-const port = 3000;
-
+// Определяем пути
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Инициализируем приложение Fastify
+const app = fastify();
+const port = 3000;
+
+// Простая база данных (имитация репозитория)
+const state = {
+  users: [],
+  courses: [],
+};
+
+// Подключаем плагины
+await app.register(formbody);
 await app.register(view, {
   engine: { pug },
   root: path.join(__dirname, 'views'),
 });
 
-const state = {
-  courses: [
-    { id: 1, title: 'JavaScript Basics', description: 'Learn the fundamentals of JavaScript, including syntax and basic programming concepts.' },
-    { id: 2, title: 'Node.js Fundamentals', description: 'Understand the basics of server-side development with Node.js and build simple APIs.' },
-    { id: 3, title: 'React Crash Course', description: 'Dive into React development, including components, state management, and hooks.' },
-  ],
-};
-
-
-app.get('/courses', (req, res) => {
-  const term = req.query.term;
-  let filteredCourses = state.courses;
-
-  if (term) {
-    filteredCourses = state.courses.filter(course => 
-      course.title.toLowerCase().includes(term.toLowerCase()) || 
-      course.description.toLowerCase().includes(term.toLowerCase())
-    );
-  }
-
-  const data = { term, courses: filteredCourses };
-
-  res.view('courses/index', data);
+// Маршрут для формы добавления пользователя
+app.get('/users/new', (req, res) => {
+  res.view('users/new');
 });
 
-app.listen({ port }, () => {
-  console.log(`Example app listening on port ${port}`);
+// Обработчик добавления пользователя
+app.post('/users', (req, res) => {
+  const { name, email, password } = req.body;
+
+  // Нормализация email
+  const normalizedEmail = email.trim().toLowerCase();
+
+  // Добавляем пользователя в "репозиторий"
+  const user = { name, email: normalizedEmail, password };
+  state.users.push(user);
+
+  // Редирект на список пользователей
+  res.redirect('/users');
+});
+
+// Список пользователей
+app.get('/users', (req, res) => {
+  res.view('/users/users', { users: state.users });
+});
+
+// Форма для добавления курса
+app.get('/courses/new', (req, res) => {
+  res.view('courses/new');
+});
+
+// Обработчик добавления курса
+app.post('/courses', (req, res) => {
+  const { title, description } = req.body;
+
+  // Добавляем курс в "репозиторий"
+  const course = { title, description };
+  state.courses.push(course);
+
+  // Редирект на список курсов
+  res.redirect('/courses');
+});
+
+// Список курсов
+app.get('/courses', (req, res) => {
+  res.view('/courses/courses', { courses: state.courses });
+});
+
+// Запускаем сервер
+app.listen({ port }, (err) => {
+  if (err) {
+    console.error(err);
+    process.exit(1);
+  }
+  console.log(`Server is running at http://localhost:${port}`);
 });
