@@ -4,6 +4,7 @@ import view from '@fastify/view';
 import pug from 'pug';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import * as yup from 'yup'
 
 // Определяем пути
 const __filename = fileURLToPath(import.meta.url);
@@ -32,17 +33,50 @@ app.get('/users/new', (req, res) => {
 });
 
 // Обработчик добавления пользователя
-app.post('/users', (req, res) => {
-  const { name, email, password } = req.body;
+app.post('/users', {
+  attachValidation: true,
+  schema: {
+    body: yup.object({
+      name: yup.string().min(2, 'Name should contain at least 2 symbols'),
+      email: yup.string().email(),
+      password: yup.string().min(5, 'Password should be at least 5 symbols'),
+      passwordConfirmation: yup.string().min(5),
+    }),
+  },
+  validatorCompiler: ({ schema, method, url, httpPart }) => (data) => {
+    if (data.password !== data.passwordConfirmation) {
+      return {
+        error: Error('Password confirmation is not equal the password'),
+      };
+    }
+    try {
+      const result = schema.validateSync(data);
+      return { value: result };
+    } catch (e) {
+      return { error: e };
+    }
+  },
+}, (req, res) => {
+  const { name, email, password, passwordConfirmation } = req.body;
 
-  // Нормализация email
-  const normalizedEmail = email.trim().toLowerCase();
+  if (req.validationError) {
+    const data = {
+      name: name.trim(), email: email.trim().toLowerCase(), password, passwordConfirmation,
+      error: req.validationError,
+    };
 
-  // Добавляем пользователя в "репозиторий"
-  const user = { name, email: normalizedEmail, password };
+    res.view('/users/new', data);
+    return;
+  }
+
+  const user = {
+    name,
+    email,
+    password,
+  };
+
   state.users.push(user);
 
-  // Редирект на список пользователей
   res.redirect('/users');
 });
 
@@ -57,17 +91,45 @@ app.get('/courses/new', (req, res) => {
 });
 
 // Обработчик добавления курса
-app.post('/courses', (req, res) => {
+app.post('/courses', {
+  attachValidation: true,
+  schema: {
+    body: yup.object({
+      title: yup.string().min(2, 'Title should contain at least 2 symbols'),
+      description: yup.string().min(10, 'Description should be at least 10 symbols'),
+    }),
+  },
+  validatorCompiler: ({ schema, method, url, httpPart }) => (data) => {
+    try {
+      const result = schema.validateSync(data);
+      return { value: result };
+    } catch (e) {
+      return { error: e };
+    }
+  },
+}, (req, res) => {
   const { title, description } = req.body;
 
-  // Добавляем курс в "репозиторий"
-  const course = { title, description };
+  if (req.validationError) {
+    const data = {
+      title, description,
+      description: description,
+      error: req.validationError,
+    };
+
+    res.view('/courses/new', data);
+    return;
+  }
+
+  const course = {
+    title,
+    description,
+  };
+
   state.courses.push(course);
 
-  // Редирект на список курсов
   res.redirect('/courses');
 });
-
 // Список курсов
 app.get('/courses', (req, res) => {
   res.view('/courses/courses', { courses: state.courses });

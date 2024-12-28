@@ -1,15 +1,21 @@
 html
+  head
+    title Добавить нового пользователя
   body
-    h1 Добавить нового пользователя
-    form(action="/users", method="post")
-      div
-        label Имя:
-        input(type="text", name="name", required=true)
-      div
-        label Email:
-        input(type="email", name="email", required=true)
-      div
-        label Пароль:
-        input(type="password", name="password", required=true)
-      div
-        button(type="submit") Зарегистрировать
+      if error
+        p= error.message
+
+      form(action = '/users', method = 'post')
+        div
+          label Имя:
+            input(type = 'text', name = 'name', value = name)
+        div
+          label Email:
+            input(type = 'email', name = 'email', value = email, required = true)
+        div
+          label Пароль:
+            input(type = 'password', name = 'password', value = password, required = true)
+        div
+          label Подтверждение пароля:
+            input(type = 'password', name = 'passwordConfirmation', value = passwordConfirmation, required = true)
+        input(type = 'submit', value = 'Зарегистрировать')
