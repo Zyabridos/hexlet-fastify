@@ -5,6 +5,7 @@ import pug from 'pug';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import * as yup from 'yup'
+import routes from './routes.js'
 
 // Определяем пути
 const __filename = fileURLToPath(import.meta.url);
@@ -28,12 +29,12 @@ await app.register(view, {
 });
 
 // Маршрут для формы добавления пользователя
-app.get('/users/new', (req, res) => {
-  res.view('users/new');
+app.get(routes.newUserPath(), (req, res) => {
+  res.view(routes.newUserPath());
 });
 
 // Обработчик добавления пользователя
-app.post('/users', {
+app.post(routes.usersPath(), {
   attachValidation: true,
   schema: {
     body: yup.object({
@@ -65,7 +66,7 @@ app.post('/users', {
       error: req.validationError,
     };
 
-    res.view('/users/new', data);
+    res.view(routes.newUserPath(), data);
     return;
   }
 
@@ -77,21 +78,21 @@ app.post('/users', {
 
   state.users.push(user);
 
-  res.redirect('/users');
+  res.redirect(routes.usersPath());
 });
 
 // Список пользователей
-app.get('/users', (req, res) => {
+app.get(routes.usersPath(), (req, res) => {
   res.view('/users/users', { users: state.users });
 });
 
 // Форма для добавления курса
-app.get('/courses/new', (req, res) => {
-  res.view('courses/new');
+app.get(routes.newCoursePath(), (req, res) => {
+  res.view(routes.newCoursePath());
 });
 
 // Обработчик добавления курса
-app.post('/courses', {
+app.post(routes.coursesPath(), {
   attachValidation: true,
   schema: {
     body: yup.object({
@@ -117,7 +118,7 @@ app.post('/courses', {
       error: req.validationError,
     };
 
-    res.view('/courses/new', data);
+    res.view(routes.newCoursePath(), data);
     return;
   }
 
@@ -128,10 +129,10 @@ app.post('/courses', {
 
   state.courses.push(course);
 
-  res.redirect('/courses');
+  res.redirect(routes.coursesPath);
 });
 // Список курсов
-app.get('/courses', (req, res) => {
+app.get(routes.coursesPath(), (req, res) => {
   res.view('/courses/courses', { courses: state.courses });
 });
 
