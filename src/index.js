@@ -78,7 +78,7 @@ app.post(routes.usersPath(), {
 
   state.users.push(user);
 
-  res.redirect(routes.usersPath());
+  res.reverse(routes.usersPath());
 });
 
 // Список пользователей
@@ -129,7 +129,7 @@ app.post(routes.coursesPath(), {
 
   state.courses.push(course);
 
-  res.redirect(routes.coursesPath);
+  res.reverse(routes.coursesPath);
 });
 // Список курсов
 app.get(routes.coursesPath(), (req, res) => {
